@@ -5,39 +5,43 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
-use objc::runtime::{Class, YES, NO};
-use objc_foundation::{NSString, INSString};
+use super::*;
 
-use super::{id, NSObjectPrototype, NSObjectProtocol, NSArray};
+use objc::runtime::{Class, Object, YES, NO};
+use objc_foundation::{NSString, INSString, NSArray};
+use foreign_types::ForeignType;
 
-use argument::MTLDataType;
+pub enum MTLVertexAttribute {}
 
-pub enum MTLVertexAttributePrototype {}
-pub type MTLVertexAttribute = id<(MTLVertexAttributePrototype, (NSObjectPrototype, ()))>;
+foreign_obj_type! {
+    type CType = MTLVertexAttribute;
+    pub struct VertexAttribute;
+    pub struct VertexAttributeRef;
+}
 
-impl<'a> MTLVertexAttribute {
-    pub fn name(&'a self) -> &'a str {
+impl VertexAttributeRef {
+    pub fn name(&self) -> &str {
         unsafe {
-            let name: &'a NSString = msg_send![self.0, name];
+            let name: &NSString = msg_send![self, name];
             name.as_str()
         }
     }
 
     pub fn attribute_index(&self) -> u64 {
         unsafe {
-            msg_send![self.0, attributeIndex]
+            msg_send![self, attributeIndex]
         }
     }
 
     pub fn attribute_type(&self) -> MTLDataType {
         unsafe {
-            msg_send![self.0, attributeType]
+            msg_send![self, attributeType]
         }
     }
 
     pub fn is_active(&self) -> bool {
         unsafe {
-            match msg_send![self.0, isActive] {
+            match msg_send![self, isActive] {
                 YES => true,
                 NO => false,
                 _ => unreachable!()
@@ -45,12 +49,6 @@ impl<'a> MTLVertexAttribute {
         }
     }
 
-}
-
-impl NSObjectProtocol for MTLVertexAttribute {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLVertexAttribute").unwrap()
-    }
 }
 
 #[repr(u64)]
@@ -61,35 +59,33 @@ pub enum MTLFunctionType {
     Kernel = 3,
 }
 
+pub enum MTLFunction {}
+
+foreign_obj_type! {
+    type CType = MTLFunction;
+    pub struct Function;
+    pub struct FunctionRef;
+}
 
 
-pub enum MTLFunctionPrototype {}
-pub type MTLFunction = id<(MTLFunctionPrototype, (NSObjectPrototype, ()))>;
-
-impl<'a> MTLFunction {
-    pub fn name(&'a self) -> &'a str {
+impl FunctionRef {
+    pub fn name(&self) -> &str {
         unsafe {
-            let name: &'a NSString = msg_send![self.0, name];
+            let name: &NSString = msg_send![self, name];
             name.as_str()
         }
     }
 
     pub fn function_type(&self) -> MTLFunctionType {
         unsafe {
-            msg_send![self.0, functionType]
+            msg_send![self, functionType]
         }
     }
 
-    pub fn vertex_attributes(&self) -> NSArray<MTLVertexAttribute> {
+    pub fn vertex_attributes(&self) -> &Array<VertexAttribute> {
         unsafe {
-            msg_send![self.0, vertexAttributes]
+            msg_send![self, vertexAttributes]
         }
-    }
-}
-
-impl NSObjectProtocol for MTLFunction {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLFunction").unwrap()
     }
 }
 
@@ -103,43 +99,35 @@ pub enum MTLLanguageVersion {
 }
 
 
-pub enum MTLCompileOptionsPrototype {}
-pub type MTLCompileOptions = id<(MTLCompileOptionsPrototype, (NSObjectPrototype, ()))>;
+pub enum MTLCompileOptions {}
 
-impl MTLCompileOptions {
+foreign_obj_type! {
+    type CType = MTLCompileOptions;
+    pub struct CompileOptions;
+    pub struct CompileOptionsRef;
+}
+
+impl CompileOptions {
     pub fn new() -> Self {
         unsafe {
-            msg_send![Self::class(), new]
+            let class = Class::get("MTLCompileOptions").unwrap();
+            msg_send![class, new]
         }
     }
+}
 
-    pub fn alloc() -> Self {
-        unsafe {
-            msg_send![Self::class(), alloc]
-        }
+impl CompileOptionsRef {
+    pub unsafe fn preprocessor_defines(&self) -> *mut Object {
+        msg_send![self, preprocessorMacros]
     }
 
-    pub fn init(&self) -> Self {
-        unsafe {
-            msg_send![self.0, init]
-        }
-    }
-
-    pub fn preprocessor_defines(&self) -> id {
-        unsafe {
-            msg_send![self.0, preprocessorMacros]
-        }
-    }
-
-    pub fn set_preprocessor_defines(&self, defines: id) {
-        unsafe {
-            msg_send![self.0, setPreprocessorMacros:defines]
-        }
+    pub unsafe fn set_preprocessor_defines(&self, defines: *mut Object) {
+        msg_send![self, setPreprocessorMacros:defines]
     }
 
     pub fn is_fast_math_enabled(&self) -> bool {
         unsafe {
-            match msg_send![self.0, fastMathEnabled] {
+            match msg_send![self, fastMathEnabled] {
                 YES => true,
                 NO => false,
                 _ => unreachable!()
@@ -149,26 +137,20 @@ impl MTLCompileOptions {
 
     pub fn set_fast_math_enabled(&self, enabled: bool) {
         unsafe {
-            msg_send![self.0, setFastMathEnabled:enabled]
+            msg_send![self, setFastMathEnabled:enabled]
         }
     }
 
     pub fn language_version(&self) -> MTLLanguageVersion {
         unsafe {
-            msg_send![self.0, languageVersion]
+            msg_send![self, languageVersion]
         }
     }
 
     pub fn set_language_version(&self, version: MTLLanguageVersion) {
         unsafe {
-            msg_send![self.0, setLanguageVersion:version]
+            msg_send![self, setLanguageVersion:version]
         }
-    }
-}
-
-impl NSObjectProtocol for MTLCompileOptions {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLCompileOptions").unwrap()
     }
 }
 
@@ -189,15 +171,19 @@ pub enum MTLRenderPipelineError {
     InvalidInput      = 3,
 }
 
+pub enum MTLLibrary {}
+
+foreign_obj_type! {
+    type CType = MTLLibrary;
+    pub struct Library;
+    pub struct LibraryRef;
+}
 
 
-pub enum MTLLibraryPrototype {}
-pub type MTLLibrary = id<(MTLLibraryPrototype, (NSObjectPrototype, ()))>;
-
-impl<'a> MTLLibrary {
-    pub fn label(&'a self) -> &'a str {
+impl LibraryRef {
+    pub fn label(&self) -> &str {
         unsafe {
-            let label: &'a NSString = msg_send![self.0, label];
+            let label: &NSString = msg_send![self, label];
             label.as_str()
         }
     }
@@ -205,33 +191,29 @@ impl<'a> MTLLibrary {
     pub fn set_label(&self, label: &str) {
         unsafe {
             let nslabel = NSString::from_str(label);
-            msg_send![self.0, setLabel:nslabel]
+            msg_send![self, setLabel:nslabel]
         }
     }
 
-    pub fn get_function(&self, name: &str) -> MTLFunction {
+    pub fn get_function(&self, name: &str) -> Option<Function> {
         unsafe {
             use cocoa::foundation::NSString as cocoa_NSString;
             use cocoa::base::nil as cocoa_nil;
 
             let nsname = cocoa_NSString::alloc(cocoa_nil).init_str(name);
             //let nsname = NSString::from_str(name);
-            let func: MTLFunction = msg_send![self.0, newFunctionWithName:nsname];
-
-            func
+            let function: *mut MTLFunction = msg_send![self, newFunctionWithName:nsname];
+            if !function.is_null() {
+                Some(Function::from_ptr(function))
+            } else {
+                None
+            }
         }
     }
 
-    pub fn function_names(&self) -> NSArray<NSString> {
+    pub fn function_names(&self) -> &NSArray<NSString> {
         unsafe {
-            msg_send![self.0, functionNames]
+            msg_send![self, functionNames]
         }
     }
 }
-
-impl NSObjectProtocol for MTLLibrary {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLLibrary").unwrap()
-    }
-}
-

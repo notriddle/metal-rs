@@ -6,8 +6,7 @@
 // copied, modified, or distributed except according to those terms.
 
 use objc::runtime::Class;
-
-use super::{id, NSObjectPrototype, NSObjectProtocol};
+use cocoa::foundation::NSUInteger;
 
 use depthstencil::MTLCompareFunction;
 
@@ -36,106 +35,96 @@ pub enum MTLSamplerAddressMode {
     ClampToZero = 4,
 }
 
-pub enum MTLSamplerDescriptorPrototype {}
-pub type MTLSamplerDescriptor = id<(MTLSamplerDescriptorPrototype, (NSObjectPrototype, ()))>;
+pub enum MTLSamplerDescriptor {}
 
-impl MTLSamplerDescriptor {
+foreign_obj_type! {
+    type CType = MTLSamplerDescriptor;
+    pub struct SamplerDescriptor;
+    pub struct SamplerDescriptorRef;
+}
+
+
+impl SamplerDescriptor {
     pub fn new() -> Self {
         unsafe {
-            msg_send![Self::class(), new]
+            let class = Class::get("MTLSamplerDescriptor").unwrap();
+            msg_send![class, new]
         }
     }
+}
 
-    pub fn alloc() -> Self {
-        unsafe {
-            msg_send![Self::class(), alloc]
-        }
-    }
-
-    pub fn init(&self) -> Self {
-        unsafe {
-            msg_send![self, init]
-        }
-    }
-
+impl SamplerDescriptorRef {
     pub fn set_min_filter(&self, filter: MTLSamplerMinMagFilter) {
         unsafe {
-            msg_send![self.0, setMinFilter:filter]
+            msg_send![self, setMinFilter:filter]
         }
     }
 
     pub fn set_mag_filter(&self, filter: MTLSamplerMinMagFilter) {
         unsafe {
-            msg_send![self.0, setMagFilter:filter]
+            msg_send![self, setMagFilter:filter]
         }
     }
 
     pub fn set_mip_filter(&self, filter: MTLSamplerMipFilter) {
         unsafe {
-            msg_send![self.0, setMipFilter:filter]
+            msg_send![self, setMipFilter:filter]
         }
     }
 
     pub fn set_address_mode_s(&self, mode: MTLSamplerAddressMode) {
         unsafe {
-            msg_send![self.0, setSAddressMode:mode]
+            msg_send![self, setSAddressMode:mode]
         }
     }
 
     pub fn set_address_mode_t(&self, mode: MTLSamplerAddressMode) {
         unsafe {
-            msg_send![self.0, setTAddressMode:mode]
+            msg_send![self, setTAddressMode:mode]
         }
     }
 
     pub fn set_address_mode_r(&self, mode: MTLSamplerAddressMode) {
         unsafe {
-            msg_send![self.0, setRAddressMode:mode]
+            msg_send![self, setRAddressMode:mode]
         }
     }
 
-    pub fn set_max_anisotropy(&self, anisotropy: u64) {
+    pub fn set_max_anisotropy(&self, anisotropy: NSUInteger) {
         unsafe {
-            msg_send![self.0, setMaxAnisotropy:anisotropy]
+            msg_send![self, setMaxAnisotropy:anisotropy]
         }
     }
 
     pub fn set_compare_function(&self, func: MTLCompareFunction) {
         unsafe {
-            msg_send![self.0, setCompareFunction:func]
+            msg_send![self, setCompareFunction:func]
         }
     }
 
     pub fn set_lod_bias(&self, bias: f32) {
         unsafe {
-            msg_send![self.0, setLodBias:bias]
+            msg_send![self, setLodBias:bias]
         }
     }
 
     pub fn set_lod_min_clamp(&self, clamp: f32) {
         unsafe {
-            msg_send![self.0, setLodMinClamp:clamp]
+            msg_send![self, setLodMinClamp:clamp]
         }
     }
 
     pub fn set_lod_max_clamp(&self, clamp: f32) {
         unsafe {
-            msg_send![self.0, setLodMaxClamp:clamp]
+            msg_send![self, setLodMaxClamp:clamp]
         }
     }
 }
 
-impl NSObjectProtocol for MTLSamplerDescriptor {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLSamplerDescriptor").unwrap()
-    }
-}
+pub enum MTLSamplerState {}
 
-pub enum MTLSamplerStatePrototype {}
-pub type MTLSamplerState = id<(MTLSamplerStatePrototype, (NSObjectPrototype, ()))>;
-
-impl NSObjectProtocol for MTLSamplerState {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLSamplerState").unwrap()
-    }
+foreign_obj_type! {
+    type CType = MTLSamplerState;
+    pub struct SamplerState;
+    pub struct SamplerStateRef;
 }

@@ -5,20 +5,22 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
-use objc::runtime::Class;
+use super::*;
+
 use objc_foundation::{NSString, INSString};
 
-use super::{id, NSObjectPrototype, NSObjectProtocol};
+pub enum MTLCommandQueue {}
 
-use commandbuffer::MTLCommandBuffer;
+foreign_obj_type! {
+    type CType = MTLCommandQueue;
+    pub struct CommandQueue;
+    pub struct CommandQueueRef;
+}
 
-pub enum MTLCommandQueuePrototype {}
-pub type MTLCommandQueue = id<(MTLCommandQueuePrototype, (NSObjectPrototype, ()))>;
-
-impl<'a> MTLCommandQueue {
-    pub fn label(&'a self) -> &'a str {
+impl CommandQueueRef {
+    pub fn label(&self) -> &str {
         unsafe {
-            let label: &'a NSString = msg_send![self.0, label];
+            let label: &NSString = msg_send![self, label];
             label.as_str()
         }
     }
@@ -26,26 +28,19 @@ impl<'a> MTLCommandQueue {
     pub fn set_label(&self, label: &str) {
         unsafe {
             let nslabel = NSString::from_str(label);
-            msg_send![self.0, setLabel:nslabel]
+            msg_send![self, setLabel:nslabel]
         }
     }
 
-    pub fn new_command_buffer(&self) -> MTLCommandBuffer {
+    pub fn new_command_buffer(&self) -> &CommandBufferRef {
         unsafe {
-            msg_send![self.0, commandBuffer]
+            msg_send![self, commandBuffer]
         }
     }
 
-    pub fn new_command_buffer_with_unretained_references(&self) -> MTLCommandBuffer {
+    pub fn new_command_buffer_with_unretained_references(&self) -> &CommandBufferRef {
         unsafe {
-            msg_send![self.0, commandBufferWithUnretainedReferences]
+            msg_send![self, commandBufferWithUnretainedReferences]
         }
     }
 }
-
-impl NSObjectProtocol for MTLCommandQueue {
-    unsafe fn class() -> &'static Class {
-        Class::get("MTLCommandQueue").unwrap()
-    }
-}
-
